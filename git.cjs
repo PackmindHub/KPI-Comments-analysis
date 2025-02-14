@@ -18190,9 +18190,9 @@ var AbstractMergeRequestRepository = class {
       const repoMergeRequests = [];
       let pageMergeRequests = null;
       do {
-        const pageMergeRequests2 = await this.extractMergeRequests(repo, page, ignoreRequestBefore);
-        if (pageMergeRequests2) {
-          repoMergeRequests.push(...pageMergeRequests2);
+        pageMergeRequests = await this.extractMergeRequests(repo, page, ignoreRequestBefore);
+        if (pageMergeRequests) {
+          repoMergeRequests.push(...pageMergeRequests);
         }
         page++;
       } while (pageMergeRequests);

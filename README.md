@@ -2,8 +2,9 @@
 
 A command-line tool to fetch and export code review data from GitHub or GitLab merge requests.
 
-## Installation
 
+## Usage
+> ⚠️ Requires node 20+
 ```bash
 node git.cjs [options]
 ```
@@ -28,7 +29,7 @@ node git.cjs [options]
 
 Fetch GitLab merge requests from the last month:
 ```bash
-node ./dist/bundle.cjs \
+node git.cjs \
   -k your_gitlab_token \
   -u https://gitlab.example.com \
   -f 2024-02-01 \
@@ -36,21 +37,24 @@ node ./dist/bundle.cjs \
   -o output.json
 ```
 
-Fetch GitHub PRs with specific file types:
+
+Fetch GitLab merge requests in specific directories:
 ```bash
-node ./dist/bundle.cjs \
+node git.cjs \
   -k your_github_token \
   -f 2024-01-01 \
   -t 2024-03-01 \
   -p github \
   -r owner/repo \
-  -i "*.ts,*.js" \
+  -i "apps/frontend/**/*,libs/ui/**/*" \
   -o github_prs.json
 ```
 
 ### More on includes
 
 The `-i, --includes` option accepts glob patterns to filter which files should be included in the diff output. Multiple patterns can be specified as a comma-separated list.
+
+> ⚠️ Surround the inclusion patterns with double quotes. Ex: -i "\*\*/server/\*\*"
 
 Examples of include patterns:
 ```bash
@@ -75,10 +79,9 @@ The tool will only include diffs from files that match at least one of the speci
 ## Output
 
 The tool generates a JSON file containing merge request data including:
-- Basic PR/MR information (title, description, author)
-- Creation and merge dates
+- Basic PR/MR information (title, description, anonymised author, merge date)
 - Code changes (unless --no-diff is specified)
-- File changes matching include patterns (if specified)
+- Discussions on files matching include patterns (if specified, otherwise all discussions are included)
 
 
 ### GitLab
@@ -86,7 +89,3 @@ Generate a personal access token with `api` scope at: GitLab > Settings > Access
 
 ### GitHub
 Generate a personal access token with `repo` scope at: GitHub > Settings > Developer settings > Personal access tokens
-
-## License
-
-[Add your license here]
