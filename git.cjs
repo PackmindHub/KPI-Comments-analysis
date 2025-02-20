@@ -18452,6 +18452,261 @@ var GitLabAPI = class {
   }
 };
 
+// src/fetchData/agent/GithubMergeRequestRepository.ts
+var GITHUB_MAX_REQUESTS_PER_MINUTE = 5e3 / 60;
+var DELAY_BETWEEN_REQUESTS_IN_MS2 = 60 * 1e3 / GITHUB_MAX_REQUESTS_PER_MINUTE;
+var delay2 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+var GitHubMergeRequestRepository = class extends AbstractMergeRequestRepository {
+  constructor(gitCredentials, logger) {
+    super(new GitHubAPI({
+      apiUrl: gitCredentials.hostname,
+      token: gitCredentials.token
+    }, logger), logger);
+    this.GITHUB_REST_API_USER_TYPE = "User";
+  }
+  assertApi() {
+    if (!this._api) {
+      this._logger.error("GitHubMergeRequestRepository has not been initialized.");
+      throw new Error("GitHubMergeRequestRepository has not been initialized.");
+    }
+  }
+  async getPullRequests(repo, page, ignoreRequestBefore) {
+    const pullRequests = await this._api.getPullRequests(repo, page);
+    return pullRequests.reduce((acc, pr) => {
+      if (!ignoreRequestBefore || new Date(pr.merged_at) > ignoreRequestBefore) {
+        acc.push({
+          id: pr.number,
+          title: pr.title,
+          url: pr.html_url
+        });
+      }
+      return acc;
+    }, []);
+  }
+  async extractMergeRequestFiles(repo, mergeRequest) {
+    this.assertApi();
+    const groupedComments = this.groupDiscussions(await this._api.getPullRequestComments(repo, mergeRequest.id));
+    return Object.entries(groupedComments).map(([path2, comments]) => {
+      const rootComments = comments.filter((c) => !c.in_reply_to_id);
+      const discussions = rootComments.map((rootComment) => {
+        const replies = comments.filter((c) => c.in_reply_to_id === rootComment.id).filter((c) => this.filterCommentsFromHumansOnly(c));
+        return {
+          messages: [rootComment, ...replies].map((comment) => ({
+            id: comment.id,
+            author: comment.user.login,
+            content: comment.body,
+            url: comment.html_url,
+            date: new Date(comment.updated_at)
+          })),
+          timestamp: new Date(rootComment.updated_at),
+          diff: rootComment.diff_hunk
+        };
+      });
+      return {
+        discussions,
+        path: path2
+      };
+    });
+  }
+  filterCommentsFromHumansOnly(c) {
+    return c.user?.type?.toLowerCase() === this.GITHUB_REST_API_USER_TYPE.toLowerCase();
+  }
+  groupDiscussions(comments) {
+    const groupedDiscussions = {};
+    for (const comment of comments) {
+      const filePath = comment.path;
+      if (filePath) {
+        if (!groupedDiscussions[filePath]) {
+          groupedDiscussions[filePath] = [];
+        }
+        groupedDiscussions[filePath].push(comment);
+      }
+    }
+    return groupedDiscussions;
+  }
+};
+var latestRequestTime2 = 0;
+var GitHubAPI = class {
+  constructor(_connectionData, _logger) {
+    this._connectionData = _connectionData;
+    this._logger = _logger;
+    this._connection = axios_default.create({
+      headers: this.getHeaders()
+    });
+    this._connection.interceptors.request.use(async (config) => {
+      const now = Date.now();
+      const timeSinceLastRequest = now - latestRequestTime2;
+      if (timeSinceLastRequest < DELAY_BETWEEN_REQUESTS_IN_MS2) {
+        await delay2(DELAY_BETWEEN_REQUESTS_IN_MS2 - timeSinceLastRequest);
+      }
+      latestRequestTime2 = now;
+      return config;
+    });
+  }
+  async getPullRequests(repo, page) {
+    const url2 = `${this._connectionData.apiUrl}/repos/${repo}/pulls?state=closed&sort=created&direction=desc&per_page=100&page=${page}`;
+    this._logger.info(`Querying closed pull requests: ${url2} - page n\xB0${page}`);
+    try {
+      const { data } = await this._connection.get(url2, {
+        headers: this.getHeaders()
+      });
+      return data;
+    } catch (err) {
+      this._logger.error(`Got error "${err.message}" while querying closed pull requests.`);
+      throw err;
+    }
+  }
+  async getPullRequestComments(repo, mergeRequestId) {
+    const url2 = `${this._connectionData.apiUrl}/repos/${repo}/pulls/${mergeRequestId}/comments`;
+    this._logger.info(`Querying pull request comments: ${url2}`);
+    try {
+      const { status, data } = await this._connection.get(url2, {
+        headers: this.getHeaders()
+      });
+      if (status !== 200) {
+        this._logger.error(`Got status ${status} while querying comments.`);
+        return [];
+      }
+      return data;
+    } catch (err) {
+      this._logger.error(`Got error "${err.message}" while querying comments.`);
+      throw err;
+    }
+    return [];
+  }
+  getHeaders() {
+    return {
+      Authorization: `Bearer ${this._connectionData.token}`,
+      "X-GitHub-Api-Version": "2022-11-28"
+    };
+  }
+};
+
+// src/fetchData/agent/AzureDevopsMergeRequestRepository.ts
+var AZURE_DEVOPS_MAX_REQUESTS_PER_MINUTE = 300;
+var DELAY_BETWEEN_REQUESTS_IN_MS3 = 60 * 1e3 / AZURE_DEVOPS_MAX_REQUESTS_PER_MINUTE;
+var delay3 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+var AzureDevopsMergeRequestRepository = class extends AbstractMergeRequestRepository {
+  constructor(gitCredentials, noDiff, logger) {
+    super(new AzureDevopsAPI({
+      apiUrl: gitCredentials.hostname,
+      token: gitCredentials.token
+    }, logger), logger);
+    this._noDiff = noDiff;
+  }
+  assertApi() {
+    if (!this._api) {
+      this._logger.error("AzureDevopsMergeRequestRepository has not been initialized.");
+      throw new Error("AzureDevopsMergeRequestRepository has not been initialized.");
+    }
+  }
+  async getPullRequests(repo, page, ignoreRequestBefore) {
+    const pullRequests = await this._api.getPullRequests(repo, page);
+    return pullRequests.reduce((acc, pr) => {
+      if (!ignoreRequestBefore || new Date(pr.closedDate) > ignoreRequestBefore) {
+        acc.push({
+          id: pr.pullRequestId.toString(),
+          title: pr.title,
+          url: pr.url
+        });
+      }
+      return acc;
+    }, []);
+  }
+  async extractMergeRequestFiles(repo, mergeRequest) {
+    this.assertApi();
+    const parts = repo.split("/");
+    const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
+    const threads = await this._api.getPullRequestThreads(repo, mergeRequest.id);
+    const groupedThreads = this.groupThreads(threads);
+    return Object.entries(groupedThreads).map(([path2, threads2]) => {
+      const discussions = threads2.map((thread) => ({
+        messages: thread.comments.filter((comment) => this.filterCommentsFromHumansOnly(comment)).map((comment) => ({
+          id: comment.id.toString(),
+          author: comment.author.displayName,
+          content: comment.content,
+          url: `${this._api._connectionData.apiUrl}/${org}/${project}/_git/${repository}/pullRequest/${mergeRequest.id}?_a=files&threadId=${thread.id}&commentId=${comment.id}`,
+          date: new Date(comment.publishedDate)
+        })),
+        timestamp: new Date(thread.publishedDate),
+        diff: this._noDiff ? "" : thread.threadContext.diffHunk || ""
+      })).filter((discussion) => discussion.messages.length > 0);
+      return {
+        discussions,
+        path: path2
+      };
+    });
+  }
+  filterCommentsFromHumansOnly(comment) {
+    return !comment.isDeleted;
+  }
+  groupThreads(threads) {
+    const groupedThreads = {};
+    for (const thread of threads) {
+      const filePath = thread.threadContext?.filePath;
+      if (filePath) {
+        if (!groupedThreads[filePath]) {
+          groupedThreads[filePath] = [];
+        }
+        groupedThreads[filePath].push(thread);
+      }
+    }
+    return groupedThreads;
+  }
+};
+var latestRequestTime3 = 0;
+var AzureDevopsAPI = class {
+  constructor(_connectionData, _logger) {
+    this._connectionData = _connectionData;
+    this._logger = _logger;
+    this._connection = axios_default.create({
+      baseURL: _connectionData.apiUrl,
+      headers: {
+        "Authorization": `Bearer ${_connectionData.token}`
+      }
+    });
+    this._connection.interceptors.request.use(async (config) => {
+      const now = Date.now();
+      const timeSinceLastRequest = now - latestRequestTime3;
+      if (timeSinceLastRequest < DELAY_BETWEEN_REQUESTS_IN_MS3) {
+        await delay3(DELAY_BETWEEN_REQUESTS_IN_MS3 - timeSinceLastRequest);
+      }
+      latestRequestTime3 = now;
+      return config;
+    });
+  }
+  async getPullRequests(repo, page) {
+    const parts = repo.split("/");
+    const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
+    const url2 = `/${org}/${project}/_apis/git/repositories/${repository}/pullrequests?status=completed&$skip=${(page - 1) * 100}&$top=100&api-version=7.0`;
+    this._logger.info(`  \u231B Fetching page ${page} for pull requests`);
+    try {
+      const { data } = await this._connection.get(url2);
+      this._logger.info(`  \u2705 Retrieved ${data.value.length} pull requests from page ${page}`);
+      return data.value;
+    } catch (err) {
+      const message = err.message;
+      this._logger.error(`  \u274C Error querying pull requests: "${message}"`);
+      throw err;
+    }
+  }
+  async getPullRequestThreads(repo, pullRequestId) {
+    const parts = repo.split("/");
+    const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
+    const url2 = `/${org}/${project}/_apis/git/repositories/${repository}/pullrequests/${pullRequestId}/threads?api-version=7.0`;
+    this._logger.info(`    \u231B Fetching threads for PR #${pullRequestId}`);
+    try {
+      const { data } = await this._connection.get(url2);
+      this._logger.info(`    \u2705 Retrieved ${data.value.length} threads`);
+      return data.value;
+    } catch (err) {
+      const message = err.message;
+      this._logger.error(`    \u274C Error querying threads: "${message}"`);
+      throw err;
+    }
+  }
+};
+
 // src/fetchData/fetchData.ts
 function initDataFetcher(config, logger) {
   switch (config.gitProvider) {
@@ -18465,6 +18720,18 @@ function initDataFetcher(config, logger) {
         config.noDiff,
         logger
       );
+    case "github" /* GITHUB */:
+      return new GitHubMergeRequestRepository({
+        token: config.gitToken,
+        provider: config.gitProvider,
+        hostname: config.gitUrl || "https://api.github.com"
+      }, logger);
+    case "azure-devops" /* AZURE_DEVOPS */:
+      return new AzureDevopsMergeRequestRepository({
+        token: config.gitToken,
+        provider: config.gitProvider,
+        hostname: config.gitUrl || "https://dev.azure.com"
+      }, config.noDiff, logger);
     default:
       throw new Error(`Provider ${config.gitProvider} is not supported.`);
   }
@@ -18493,20 +18760,19 @@ var SilentLogger = class {
 // src/index.ts
 function parseConfig() {
   const program2 = new Command();
-  program2.requiredOption("-k, --git-token <token>", "Git authentication token").requiredOption("-f, --from <date>", "Start date in ISO 8601 format").requiredOption("-r, --repositories <repos>", "Comma-separated list of repositories").option("-t, --to <date>", "End date in ISO 8601 format").option("-p, --git-provider <provider>", "Git provider (github or gitlab)", "gitlab").option("-u, --git-url <url>", "Custom Git URL (optional)").option("--no-diff", "Do not export code diff").option("-o, --output <file>", "Output file", "comments.json").option("-i, --includes <include>", "Comma-separated list of include glob filters").option("-v, --verbose", "Verbose output", false).parse(process.argv);
+  program2.requiredOption("-k, --git-token <token>", "Git authentication token").requiredOption("-f, --from <date>", "Start date in ISO 8601 format").requiredOption("-r, --repositories <repos>", "Comma-separated list of repositories").option("-p, --git-provider <provider>", "Git provider (gitlab, github or azure-devops)", "gitlab").option("-u, --git-url <url>", "Custom Git URL (optional)").option("--no-diff", "Do not export code diff").option("-o, --output <file>", "Output file", "comments.json").option("-i, --includes <include>", "Comma-separated list of include glob filters").option("-v, --verbose", "Verbose output", false).parse(process.argv);
   const options = program2.opts();
   const startDate = new Date(options.from);
   const endDate = options.to ? new Date(options.to) : null;
   if (isNaN(startDate.getTime()) || endDate && isNaN(endDate.getTime())) {
     throw new Error("Invalid date format. Dates must be in ISO 8601 format");
   }
-  if (options.gitProvider && options.gitProvider !== "github" && options.gitProvider !== "gitlab") {
-    throw new Error('Unsupported git provider. Supported values are "github" and "gitlab"');
+  if (options.gitProvider && options.gitProvider !== "github" && options.gitProvider !== "gitlab" && options.gitProvider !== "azure-devops") {
+    throw new Error('Unsupported git provider. Supported values are "github", "gitlab", "azure-devops"');
   }
   return {
     gitToken: options.gitToken,
     dateStartsFrom: startDate,
-    dateStopsTo: endDate,
     repositories: options.repositories.split(",").filter((repo) => repo.length > 0),
     gitProvider: options.gitProvider,
     gitUrl: options.gitUrl,
