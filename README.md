@@ -3,7 +3,11 @@
 A command-line tool to fetch and export code review data from GitHub, GitLab or Azure Devops merge requests.
 
 ## Usage
+
 > ⚠️ Requires node 20+
+
+> ⚠️ For Azure Devops, changes extraction requires local git installation
+
 ```bash
 node git.cjs [options]
 ```
@@ -85,7 +89,7 @@ The tool will only include diffs from files that match at least one of the speci
 The tool generates a JSON file containing merge request data including:
 - Basic PR/MR information (title, description, author)
 - Creation and merge dates
-- Code changes for GitHub and GitLab (unless --no-diff is specified)
+- Code changes (unless --no-diff is specified)
 - File changes matching include patterns (if specified)
 
 
@@ -97,3 +101,4 @@ Generate a personal access token with `repo` scope at: GitHub > Settings > Devel
 
 ### Azure Devops
 Generate a personal access token with `Code (read)` scope at: Azure Devops > User settings > Personal access tokens
+

@@ -1147,8 +1147,8 @@ var require_command = __commonJS({
   "node_modules/commander/lib/command.js"(exports2) {
     var EventEmitter2 = require("node:events").EventEmitter;
     var childProcess = require("node:child_process");
-    var path2 = require("node:path");
-    var fs2 = require("node:fs");
+    var path3 = require("node:path");
+    var fs3 = require("node:fs");
     var process2 = require("node:process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
     var { CommanderError: CommanderError2 } = require_error();
@@ -2129,7 +2129,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} subcommandName
        */
       _checkForMissingExecutable(executableFile, executableDir, subcommandName) {
-        if (fs2.existsSync(executableFile)) return;
+        if (fs3.existsSync(executableFile)) return;
         const executableDirMessage = executableDir ? `searched for local subcommand relative to directory '${executableDir}'` : "no directory for search for local subcommand, use .executableDir() to supply a custom directory";
         const executableMissing = `'${executableFile}' does not exist
  - if '${subcommandName}' is not meant to be an executable command, remove description parameter from '.command()' and use '.description()' instead
@@ -2147,11 +2147,11 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path2.resolve(baseDir, baseName);
-          if (fs2.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path2.extname(baseName))) return void 0;
+          const localBin = path3.resolve(baseDir, baseName);
+          if (fs3.existsSync(localBin)) return localBin;
+          if (sourceExt.includes(path3.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
-            (ext2) => fs2.existsSync(`${localBin}${ext2}`)
+            (ext2) => fs3.existsSync(`${localBin}${ext2}`)
           );
           if (foundExt) return `${localBin}${foundExt}`;
           return void 0;
@@ -2163,21 +2163,21 @@ Expecting one of '${allowedValues.join("', '")}'`);
         if (this._scriptPath) {
           let resolvedScriptPath;
           try {
-            resolvedScriptPath = fs2.realpathSync(this._scriptPath);
+            resolvedScriptPath = fs3.realpathSync(this._scriptPath);
           } catch {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path2.resolve(
-            path2.dirname(resolvedScriptPath),
+          executableDir = path3.resolve(
+            path3.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path2.basename(
+            const legacyName = path3.basename(
               this._scriptPath,
-              path2.extname(this._scriptPath)
+              path3.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -2188,7 +2188,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path2.extname(executableFile));
+        launchWithNode = sourceExt.includes(path3.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -3035,7 +3035,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path2.basename(filename, path2.extname(filename));
+        this._name = path3.basename(filename, path3.extname(filename));
         return this;
       }
       /**
@@ -3049,9 +3049,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path3) {
-        if (path3 === void 0) return this._executableDir;
-        this._executableDir = path3;
+      executableDir(path4) {
+        if (path4 === void 0) return this._executableDir;
+        this._executableDir = path4;
         return this;
       }
       /**
@@ -12170,11 +12170,11 @@ var require_mime_types = __commonJS({
       }
       return exts[0];
     }
-    function lookup(path2) {
-      if (!path2 || typeof path2 !== "string") {
+    function lookup(path3) {
+      if (!path3 || typeof path3 !== "string") {
         return false;
       }
-      var extension2 = extname("x." + path2).toLowerCase().substr(1);
+      var extension2 = extname("x." + path3).toLowerCase().substr(1);
       if (!extension2) {
         return false;
       }
@@ -12431,11 +12431,11 @@ var require_form_data = __commonJS({
   "node_modules/form-data/lib/form_data.js"(exports2, module2) {
     var CombinedStream = require_combined_stream();
     var util3 = require("util");
-    var path2 = require("path");
+    var path3 = require("path");
     var http2 = require("http");
     var https2 = require("https");
     var parseUrl = require("url").parse;
-    var fs2 = require("fs");
+    var fs3 = require("fs");
     var Stream = require("stream").Stream;
     var mime = require_mime_types();
     var asynckit = require_asynckit();
@@ -12500,7 +12500,7 @@ var require_form_data = __commonJS({
         if (value.end != void 0 && value.end != Infinity && value.start != void 0) {
           callback(null, value.end + 1 - (value.start ? value.start : 0));
         } else {
-          fs2.stat(value.path, function(err, stat) {
+          fs3.stat(value.path, function(err, stat) {
             var fileSize;
             if (err) {
               callback(err);
@@ -12557,11 +12557,11 @@ var require_form_data = __commonJS({
     FormData3.prototype._getContentDisposition = function(value, options) {
       var filename, contentDisposition;
       if (typeof options.filepath === "string") {
-        filename = path2.normalize(options.filepath).replace(/\\/g, "/");
+        filename = path3.normalize(options.filepath).replace(/\\/g, "/");
       } else if (options.filename || value.name || value.path) {
-        filename = path2.basename(options.filename || value.name || value.path);
+        filename = path3.basename(options.filename || value.name || value.path);
       } else if (value.readable && value.hasOwnProperty("httpVersion")) {
-        filename = path2.basename(value.client._httpMessage.path || "");
+        filename = path3.basename(value.client._httpMessage.path || "");
       }
       if (filename) {
         contentDisposition = 'filename="' + filename + '"';
@@ -13556,7 +13556,7 @@ var {
 } = import_index.default;
 
 // src/index.ts
-var fs = __toESM(require("fs"), 1);
+var fs2 = __toESM(require("fs"), 1);
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {
@@ -14030,9 +14030,9 @@ function isVisitable(thing) {
 function removeBrackets(key) {
   return utils_default.endsWith(key, "[]") ? key.slice(0, -2) : key;
 }
-function renderKey(path2, key, dots) {
-  if (!path2) return key;
-  return path2.concat(key).map(function each(token, i) {
+function renderKey(path3, key, dots) {
+  if (!path3) return key;
+  return path3.concat(key).map(function each(token, i) {
     token = removeBrackets(token);
     return !dots && i ? "[" + token + "]" : token;
   }).join(dots ? "." : "");
@@ -14077,9 +14077,9 @@ function toFormData(obj, formData, options) {
     }
     return value;
   }
-  function defaultVisitor(value, key, path2) {
+  function defaultVisitor(value, key, path3) {
     let arr = value;
-    if (value && !path2 && typeof value === "object") {
+    if (value && !path3 && typeof value === "object") {
       if (utils_default.endsWith(key, "{}")) {
         key = metaTokens ? key : key.slice(0, -2);
         value = JSON.stringify(value);
@@ -14098,7 +14098,7 @@ function toFormData(obj, formData, options) {
     if (isVisitable(value)) {
       return true;
     }
-    formData.append(renderKey(path2, key, dots), convertValue(value));
+    formData.append(renderKey(path3, key, dots), convertValue(value));
     return false;
   }
   const stack = [];
@@ -14107,10 +14107,10 @@ function toFormData(obj, formData, options) {
     convertValue,
     isVisitable
   });
-  function build(value, path2) {
+  function build(value, path3) {
     if (utils_default.isUndefined(value)) return;
     if (stack.indexOf(value) !== -1) {
-      throw Error("Circular reference detected in " + path2.join("."));
+      throw Error("Circular reference detected in " + path3.join("."));
     }
     stack.push(value);
     utils_default.forEach(value, function each(el, key) {
@@ -14118,11 +14118,11 @@ function toFormData(obj, formData, options) {
         formData,
         el,
         utils_default.isString(key) ? key.trim() : key,
-        path2,
+        path3,
         exposedHelpers
       );
       if (result === true) {
-        build(el, path2 ? path2.concat(key) : [key]);
+        build(el, path3 ? path3.concat(key) : [key]);
       }
     });
     stack.pop();
@@ -14312,7 +14312,7 @@ var platform_default = {
 // node_modules/axios/lib/helpers/toURLEncodedForm.js
 function toURLEncodedForm(data, options) {
   return toFormData_default(data, new platform_default.classes.URLSearchParams(), Object.assign({
-    visitor: function(value, key, path2, helpers) {
+    visitor: function(value, key, path3, helpers) {
       if (platform_default.isNode && utils_default.isBuffer(value)) {
         this.append(key, value.toString("base64"));
         return false;
@@ -14341,11 +14341,11 @@ function arrayToObject(arr) {
   return obj;
 }
 function formDataToJSON(formData) {
-  function buildPath(path2, value, target, index) {
-    let name = path2[index++];
+  function buildPath(path3, value, target, index) {
+    let name = path3[index++];
     if (name === "__proto__") return true;
     const isNumericKey = Number.isFinite(+name);
-    const isLast = index >= path2.length;
+    const isLast = index >= path3.length;
     name = !name && utils_default.isArray(target) ? target.length : name;
     if (isLast) {
       if (utils_default.hasOwnProp(target, name)) {
@@ -14358,7 +14358,7 @@ function formDataToJSON(formData) {
     if (!target[name] || !utils_default.isObject(target[name])) {
       target[name] = [];
     }
-    const result = buildPath(path2, value, target[name], index);
+    const result = buildPath(path3, value, target[name], index);
     if (result && utils_default.isArray(target[name])) {
       target[name] = arrayToObject(target[name]);
     }
@@ -15484,9 +15484,9 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config) {
       auth = urlUsername + ":" + urlPassword;
     }
     auth && headers.delete("authorization");
-    let path2;
+    let path3;
     try {
-      path2 = buildURL(
+      path3 = buildURL(
         parsed.pathname + parsed.search,
         config.params,
         config.paramsSerializer
@@ -15504,7 +15504,7 @@ var http_default = isHttpAdapterSupported && function httpAdapter(config) {
       false
     );
     const options = {
-      path: path2,
+      path: path3,
       method,
       headers: headers.toJSON(),
       agents: { http: config.httpAgent, https: config.httpsAgent },
@@ -15734,10 +15734,10 @@ var isURLSameOrigin_default = platform_default.hasStandardBrowserEnv ? /* @__PUR
 var cookies_default = platform_default.hasStandardBrowserEnv ? (
   // Standard browser envs support document.cookie
   {
-    write(name, value, expires, path2, domain, secure) {
+    write(name, value, expires, path3, domain, secure) {
       const cookie = [name + "=" + encodeURIComponent(value)];
       utils_default.isNumber(expires) && cookie.push("expires=" + new Date(expires).toGMTString());
-      utils_default.isString(path2) && cookie.push("path=" + path2);
+      utils_default.isString(path3) && cookie.push("path=" + path3);
       utils_default.isString(domain) && cookie.push("domain=" + domain);
       secure === true && cookie.push("secure");
       document.cookie = cookie.join("; ");
@@ -18314,7 +18314,7 @@ var GitLabMergeRequestsRepository = class extends AbstractMergeRequestRepository
     const discussions = await this._api.getMergeRequestDiscussion(repo, mergeRequest.id);
     const groupedDiscussions = this.groupDiscussions(discussions);
     this._logger.info(`    \u{1F500} Found ${discussions.length} discussions for merge request #${mergeRequest.id}. Grouped as ${Object.keys(groupedDiscussions).length} discussions.`);
-    for (const [path2, gitLabDiscussionsForFile] of Object.entries(groupedDiscussions)) {
+    for (const [path3, gitLabDiscussionsForFile] of Object.entries(groupedDiscussions)) {
       const mergeRequestDiscussions = [];
       for (const discussion of gitLabDiscussionsForFile) {
         const firstNote = discussion.notes[0];
@@ -18342,7 +18342,7 @@ var GitLabMergeRequestsRepository = class extends AbstractMergeRequestRepository
       if (mergeRequestDiscussions.length > 0) {
         mergeRequestFiles.push({
           discussions: mergeRequestDiscussions,
-          path: path2
+          path: path3
         });
       }
     }
@@ -18457,12 +18457,13 @@ var GITHUB_MAX_REQUESTS_PER_MINUTE = 5e3 / 60;
 var DELAY_BETWEEN_REQUESTS_IN_MS2 = 60 * 1e3 / GITHUB_MAX_REQUESTS_PER_MINUTE;
 var delay2 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 var GitHubMergeRequestRepository = class extends AbstractMergeRequestRepository {
-  constructor(gitCredentials, logger) {
+  constructor(gitCredentials, noDiff, logger) {
     super(new GitHubAPI({
       apiUrl: gitCredentials.hostname,
       token: gitCredentials.token
     }, logger), logger);
     this.GITHUB_REST_API_USER_TYPE = "User";
+    this._noDiff = noDiff;
   }
   assertApi() {
     if (!this._api) {
@@ -18486,7 +18487,7 @@ var GitHubMergeRequestRepository = class extends AbstractMergeRequestRepository 
   async extractMergeRequestFiles(repo, mergeRequest) {
     this.assertApi();
     const groupedComments = this.groupDiscussions(await this._api.getPullRequestComments(repo, mergeRequest.id));
-    return Object.entries(groupedComments).map(([path2, comments]) => {
+    return Object.entries(groupedComments).map(([path3, comments]) => {
       const rootComments = comments.filter((c) => !c.in_reply_to_id);
       const discussions = rootComments.map((rootComment) => {
         const replies = comments.filter((c) => c.in_reply_to_id === rootComment.id).filter((c) => this.filterCommentsFromHumansOnly(c));
@@ -18499,12 +18500,12 @@ var GitHubMergeRequestRepository = class extends AbstractMergeRequestRepository 
             date: new Date(comment.updated_at)
           })),
           timestamp: new Date(rootComment.updated_at),
-          diff: rootComment.diff_hunk
+          diff: this._noDiff ? "" : rootComment.diff_hunk
         };
       });
       return {
         discussions,
-        path: path2
+        path: path3
       };
     });
   }
@@ -18583,9 +18584,18 @@ var GitHubAPI = class {
 };
 
 // src/fetchData/agent/AzureDevopsMergeRequestRepository.ts
+var import_child_process = require("child_process");
+var fs = __toESM(require("fs"), 1);
+var path2 = __toESM(require("path"), 1);
+var os = __toESM(require("os"), 1);
+var import_util3 = require("util");
 var AZURE_DEVOPS_MAX_REQUESTS_PER_MINUTE = 300;
 var DELAY_BETWEEN_REQUESTS_IN_MS3 = 60 * 1e3 / AZURE_DEVOPS_MAX_REQUESTS_PER_MINUTE;
 var delay3 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+var execAsync = (0, import_util3.promisify)(import_child_process.exec);
+var writeFileAsync = (0, import_util3.promisify)(fs.writeFile);
+var mkdtempAsync = (0, import_util3.promisify)(fs.mkdtemp);
+var rmAsync = (0, import_util3.promisify)(fs.rm);
 var AzureDevopsMergeRequestRepository = class extends AbstractMergeRequestRepository {
   constructor(gitCredentials, noDiff, logger) {
     super(new AzureDevopsAPI({
@@ -18602,12 +18612,15 @@ var AzureDevopsMergeRequestRepository = class extends AbstractMergeRequestReposi
   }
   async getPullRequests(repo, page, ignoreRequestBefore) {
     const pullRequests = await this._api.getPullRequests(repo, page);
+    const parts = repo.split("/");
+    const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
     return pullRequests.reduce((acc, pr) => {
       if (!ignoreRequestBefore || new Date(pr.closedDate) > ignoreRequestBefore) {
         acc.push({
           id: pr.pullRequestId.toString(),
           title: pr.title,
-          url: pr.url
+          url: `${this._api._connectionData.apiUrl}/${org}/${project}/_git/${repository}/pullRequest/${pr.pullRequestId}`
+          // ... existing code ...
         });
       }
       return acc;
@@ -18617,25 +18630,51 @@ var AzureDevopsMergeRequestRepository = class extends AbstractMergeRequestReposi
     this.assertApi();
     const parts = repo.split("/");
     const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
+    const prDetails = await this._api.getPullRequestDetails(repo, mergeRequest.id);
     const threads = await this._api.getPullRequestThreads(repo, mergeRequest.id);
     const groupedThreads = this.groupThreads(threads);
-    return Object.entries(groupedThreads).map(([path2, threads2]) => {
-      const discussions = threads2.map((thread) => ({
-        messages: thread.comments.filter((comment) => this.filterCommentsFromHumansOnly(comment)).map((comment) => ({
+    const result = [];
+    for (const [path3, threads2] of Object.entries(groupedThreads)) {
+      const discussions = [];
+      for (const thread of threads2) {
+        let diffContent = "";
+        if (!this._noDiff) {
+          const commitId = thread.threadContext?.commitId || prDetails.lastMergeSourceCommit.commitId;
+          const precedingCommitId = thread.threadContext?.precedingCommitId || prDetails.lastMergeTargetCommit.commitId;
+          if (thread.threadContext.diffHunk) {
+            diffContent = thread.threadContext.diffHunk;
+          } else {
+            const oldContent = await this._api.getFileContent(repo, commitId, path3);
+            const newContent = await this._api.getFileContent(repo, precedingCommitId, path3);
+            try {
+              diffContent = await this._api.computeGitDiff(oldContent, newContent);
+            } catch (error) {
+              this._logger.error(`Error computing diff: ${error}`);
+              diffContent = "";
+            }
+          }
+        }
+        const filteredMessages = thread.comments.filter((comment) => this.filterCommentsFromHumansOnly(comment)).map((comment) => ({
           id: comment.id.toString(),
           author: comment.author.displayName,
           content: comment.content,
           url: `${this._api._connectionData.apiUrl}/${org}/${project}/_git/${repository}/pullRequest/${mergeRequest.id}?_a=files&threadId=${thread.id}&commentId=${comment.id}`,
           date: new Date(comment.publishedDate)
-        })),
-        timestamp: new Date(thread.publishedDate),
-        diff: this._noDiff ? "" : thread.threadContext.diffHunk || ""
-      })).filter((discussion) => discussion.messages.length > 0);
-      return {
+        }));
+        if (filteredMessages.length > 0) {
+          discussions.push({
+            messages: filteredMessages,
+            timestamp: new Date(thread.publishedDate),
+            diff: diffContent
+          });
+        }
+      }
+      result.push({
         discussions,
-        path: path2
-      };
-    });
+        path: path3
+      });
+    }
+    return result;
   }
   filterCommentsFromHumansOnly(comment) {
     return !comment.isDeleted;
@@ -18703,6 +18742,62 @@ var AzureDevopsAPI = class {
       const message = err.message;
       this._logger.error(`    \u274C Error querying threads: "${message}"`);
       throw err;
+    }
+  }
+  async getPullRequestDetails(repo, pullRequestId) {
+    const parts = repo.split("/");
+    const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
+    const url2 = `/${org}/${project}/_apis/git/repositories/${repository}/pullrequests/${pullRequestId}?api-version=7.1`;
+    try {
+      const { data } = await this._connection.get(url2);
+      return data;
+    } catch (err) {
+      const message = err.message;
+      this._logger.error(`    \u274C Error fetching PR details: "${message}"`);
+      throw new Error(message);
+    }
+  }
+  async getFileContent(repo, commitId, filePath) {
+    const parts = repo.split("/");
+    const [org, project, repository] = parts.length === 3 ? parts : [parts[0], parts[1], parts[1]];
+    const url2 = `/${org}/${project}/_apis/git/repositories/${repository}/items?path=${encodeURIComponent(filePath)}&versionDescriptor.version=${commitId}&versionDescriptor.versionType=commit&api-version=7.1`;
+    try {
+      const { data: itemData } = await this._connection.get(url2);
+      const { data: fileContent } = await this._connection.get(itemData.url, {
+        headers: {
+          "Accept": "text/plain",
+          "Content-Type": "text/plain"
+        },
+        responseType: "text"
+      });
+      return fileContent;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        return "";
+      }
+      const message = err.message;
+      this._logger.error(`    \u274C Error fetching file content: "${message}"`);
+      throw new Error(message);
+    }
+  }
+  async computeGitDiff(oldContent, newContent) {
+    const tmpDir = await mkdtempAsync(path2.join(os.tmpdir(), "git-diff-"));
+    try {
+      const oldFile = path2.join(tmpDir, "old");
+      const newFile = path2.join(tmpDir, "new");
+      await writeFileAsync(oldFile, oldContent);
+      await writeFileAsync(newFile, newContent);
+      const { stdout } = await execAsync(`git diff --no-index "${oldFile}" "${newFile}"`);
+      const diffLines = stdout.split("\n");
+      return diffLines.slice(4).join("\n");
+    } catch (error) {
+      if (error.code === 1 && error.stdout) {
+        const diffLines = error.stdout.split("\n");
+        return diffLines.slice(4).join("\n");
+      }
+      throw error;
+    } finally {
+      await rmAsync(tmpDir, { recursive: true, force: true });
     }
   }
 };
@@ -18793,7 +18888,7 @@ async function main() {
   showConfig(logger, config);
   const fetcher = initDataFetcher(config, logger);
   const mrs = await fetcher.dumpMergeRequests(config.repositories, config.dateStartsFrom, config.includes);
-  fs.writeFileSync(config.output, JSON.stringify(mrs, null, 2));
+  fs2.writeFileSync(config.output, JSON.stringify(mrs, null, 2));
 }
 main();
 /*! Bundled license information:
