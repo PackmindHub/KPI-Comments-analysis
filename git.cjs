@@ -18352,6 +18352,7 @@ var GitLabMergeRequestsRepository = class extends AbstractMergeRequestRepository
     return !username.includes("_bot_");
   }
   async getDiffs(repo, baseSha, headSha) {
+    baseSha = null;
     if (!this._api) {
       return [];
     }
@@ -18426,7 +18427,8 @@ var GitLabAPI = class {
     const url2 = `${this._connectionData.apiUrl}/projects/${encodeURIComponent(repo)}/repository/compare`;
     try {
       if (!from || !to) {
-        throw new Error(`SHA from '${from}' to '${to}' is not a valid diff`);
+        this._logger.error(`      \u26A0\uFE0F  Error fetching diff: SHA from '${from}' to '${to}' is not a valid diff`);
+        return [];
       }
       this._logger.info(`   \u231B Fetching diff between ${from.slice(0, 7)} and ${to.slice(0, 7)}`);
       const { status, data } = await this._connection.get(
