@@ -18330,11 +18330,11 @@ var GitLabMergeRequestsRepository = class extends AbstractMergeRequestRepository
             date: new Date(note.created_at),
             url: `${mergeRequest.url}#note_${note.id}`
           }));
-          if (diff && messages.length) {
+          if (messages.length > 0) {
             mergeRequestDiscussions.push({
               timestamp,
               messages,
-              diff: this._noDiff ? "" : diff
+              diff: this._noDiff || !diff ? "" : diff
             });
           }
         }
@@ -18424,8 +18424,11 @@ var GitLabAPI = class {
   }
   async getFileDiff(repo, from, to) {
     const url2 = `${this._connectionData.apiUrl}/projects/${encodeURIComponent(repo)}/repository/compare`;
-    this._logger.info(`   \u231B Fetching diff between ${from.slice(0, 7)} and ${to.slice(0, 7)}`);
     try {
+      if (!from || !to) {
+        throw new Error(`SHA from '${from}' to '${to}' is not a valid diff`);
+      }
+      this._logger.info(`   \u231B Fetching diff between ${from.slice(0, 7)} and ${to.slice(0, 7)}`);
       const { status, data } = await this._connection.get(
         url2,
         {
@@ -18442,7 +18445,7 @@ var GitLabAPI = class {
     } catch (err) {
       const message = err.message || err?.message || JSON.stringify(err);
       this._logger.error(`      \u274C Error fetching diff: ${message}`);
-      throw new Error(message);
+      return [];
     }
   }
   getHeaders() {
